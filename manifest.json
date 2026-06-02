@@ -1,0 +1,19 @@
+{
+  "name": "ListKu - Checklist & Kosakata JP",
+  "short_name": "ListKu",
+  "description": "Aplikasi checklist dan hafalan kosakata Jepang",
+  "start_url": "/listku-app/",
+  "scope": "/listku-app/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5ede0",
+  "theme_color": "#c17b3f",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/icons/svg?seed=listku&backgroundColor=c17b3f",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
