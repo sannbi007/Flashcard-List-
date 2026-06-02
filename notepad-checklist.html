@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ListKu ✍️ — Checklist & Kosakata JP</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════════
+   CSS TOKENS / THEMES
+════════════════════════════════════════════ */
+:root{
+  --bg:#f5ede0;--surface:#fdf6ed;--surface2:#f0ddc4;
+  --accent:#c17b3f;--accent2:#8b4513;--text:#2d1f0e;--text2:#7a6040;
+  --border:#d4c4a0;--check:#5a8a3c;--shadow:rgba(100,60,10,.14);
+  --radius:16px;--tag:#e8d5b0;--ease:.35s cubic-bezier(.4,0,.2,1);
+}
+body[data-theme="sakura"]{--bg:#fdf0f5;--surface:#fff8fb;--surface2:#fce4ee;--accent:#d4638a;--accent2:#9c3a5f;--text:#3b1425;--text2:#9b5c72;--border:#f0c0d4;--check:#e06090;--shadow:rgba(180,60,100,.10);--tag:#fad4e4;}
+body[data-theme="ocean"]{--bg:#e8f4f8;--surface:#f4fafd;--surface2:#d0eaf4;--accent:#2a7fa8;--accent2:#145f84;--text:#0d2b3e;--text2:#4a7a96;--border:#a0cde0;--check:#1e8a6e;--shadow:rgba(20,80,120,.10);--tag:#c0dff0;}
+body[data-theme="forest"]{--bg:#e8f0e4;--surface:#f4f8f2;--surface2:#d4e8cc;--accent:#3a7a3a;--accent2:#1e5a1e;--text:#162816;--text2:#4a6e4a;--border:#a8cc9a;--check:#2e7a5e;--shadow:rgba(20,70,20,.10);--tag:#c8e4be;}
+body[data-theme="night"]{--bg:#12131a;--surface:#1e1f2b;--surface2:#252636;--accent:#7c6ef7;--accent2:#5a4dd6;--text:#e8e6ff;--text2:#9090c0;--border:#3a3a5a;--check:#50d0a0;--shadow:rgba(80,60,200,.18);--tag:#2a2a44;}
+body[data-theme="autumn"]{--bg:#f5ede0;--surface:#fdf6ed;--surface2:#f0ddc4;--accent:#c17b3f;--accent2:#8b4513;--text:#2d1f0e;--text2:#7a6040;--border:#d4c4a0;--check:#5a8a3c;--shadow:rgba(100,60,10,.12);--tag:#e8d5b0;}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans','Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background var(--ease),color var(--ease);padding:0 0 100px;}
+
+/* ── HEADER ── */
+.header{background:var(--surface);border-bottom:2px solid var(--border);padding:12px 18px 10px;position:sticky;top:0;z-index:300;box-shadow:0 4px 20px var(--shadow);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.app-title{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--accent);flex:1;min-width:110px;}
+.app-title span{color:var(--accent2);}
+.tab-nav{display:flex;gap:4px;background:var(--surface2);border-radius:50px;padding:3px;border:1.5px solid var(--border);}
+.tab-nav-btn{padding:5px 14px;border:none;border-radius:50px;font-size:.78rem;font-weight:700;cursor:pointer;background:transparent;color:var(--text2);transition:all .2s;font-family:'DM Sans',sans-serif;}
+.tab-nav-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 8px var(--shadow);}
+.theme-bar{display:flex;gap:5px;flex-wrap:wrap;}
+.theme-btn{border:2px solid transparent;border-radius:50px;padding:4px 9px;font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
+.theme-btn.active{border-color:var(--accent);transform:scale(1.08);}
+
+/* ── LAYOUT ── */
+.container{max-width:720px;margin:0 auto;padding:18px 12px 0;}
+.page{display:none;}.page.active{display:block;}
+
+/* ════════════════════════════════════════════
+   CHECKLIST
+════════════════════════════════════════════ */
+.list-section{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);margin-bottom:16px;overflow:hidden;box-shadow:0 4px 18px var(--shadow);transition:background var(--ease);}
+.list-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface2);border-bottom:1.5px solid var(--border);cursor:pointer;user-select:none;gap:8px;transition:background var(--ease);}
+.list-header:hover{filter:brightness(.97);}
+.list-title-row{display:flex;align-items:center;gap:8px;flex:1;}
+.list-icon{font-size:1.3rem;}.list-name{font-size:.98rem;font-weight:700;}.list-count{font-size:.72rem;background:var(--tag);color:var(--accent2);border-radius:20px;padding:2px 8px;font-weight:700;}
+.toggle-chevron{font-size:.85rem;color:var(--text2);transition:transform .3s;}
+.list-section.collapsed .toggle-chevron{transform:rotate(-90deg);}
+.list-section.collapsed .items-wrap{display:none;}
+.items-wrap{padding:5px 7px 9px;}
+.prog-wrap{padding:3px 9px 9px;}.prog-lbl{font-size:.7rem;color:var(--text2);display:flex;justify-content:space-between;margin-bottom:3px;}.prog-bar{height:5px;background:var(--surface2);border-radius:10px;overflow:hidden;}.prog-fill{height:100%;background:var(--check);border-radius:10px;transition:width .4s;}
+.item-row{display:flex;align-items:flex-start;gap:9px;padding:8px 7px;border-radius:9px;margin-bottom:2px;transition:background .2s,opacity .3s;}
+.item-row:hover{background:var(--surface2);}
+.item-row.done{opacity:.42;}
+.item-cb{width:20px;height:20px;border:2px solid var(--border);border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .2s;background:var(--surface);}
+.item-cb.checked{background:var(--check);border-color:var(--check);}
+.item-cb.checked::after{content:'✓';color:#fff;font-size:.75rem;font-weight:800;}
+.item-text{font-size:.93rem;color:var(--text);word-break:break-word;font-family:'DM Sans','Noto Sans JP',sans-serif;}
+.item-row.done .item-text{text-decoration:line-through;color:var(--text2);}
+.itw{flex:1;}
+.item-del{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.9rem;padding:2px 5px;border-radius:4px;opacity:0;transition:opacity .2s,color .2s;}
+.item-row:hover .item-del{opacity:1;}.item-del:hover{color:#d44;}
+.empty-state{text-align:center;color:var(--text2);padding:16px;font-size:.85rem;font-style:italic;}
+.add-form{padding:4px 7px 9px;display:flex;flex-direction:column;gap:6px;}
+.add-row{display:flex;gap:6px;}.input-area{position:relative;flex:1;}
+.item-input{width:100%;padding:8px 36px 8px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;background:var(--surface);color:var(--text);font-family:'DM Sans','Noto Sans JP',sans-serif;outline:none;transition:border-color .2s;}
+.item-input:focus{border-color:var(--accent);}.item-input::placeholder{color:var(--text2);}
+.ime-btn{position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:.9rem;color:var(--text2);padding:2px 3px;transition:color .2s;}
+.ime-btn:hover,.ime-btn.active{color:var(--accent);}
+.add-btn{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.add-btn:hover{background:var(--accent2);}
+.jp-panel{background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:8px 6px;display:none;flex-direction:column;gap:6px;}
+.jp-panel.open{display:flex;}
+.jp-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+.jp-tab{padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:.74rem;cursor:pointer;font-weight:700;transition:all .2s;font-family:'Noto Sans JP',sans-serif;}
+.jp-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.jp-keys{display:flex;flex-wrap:wrap;gap:3px;}
+.jp-key{width:33px;height:31px;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:.88rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;font-family:'Noto Sans JP',sans-serif;font-weight:600;user-select:none;}
+.jp-key:hover{background:var(--tag);transform:scale(1.08);}
+.jp-key.wide{width:48px;font-size:.68rem;}
+.new-list-wrap{text-align:center;margin-top:6px;}
+.new-list-btn{padding:9px 24px;background:var(--surface);color:var(--accent);border:2px dashed var(--accent);border-radius:50px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.new-list-btn:hover{background:var(--tag);}
+
+/* ════════════════════════════════════════════
+   VOCAB PAGE
+════════════════════════════════════════════ */
+.vocab-topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.vocab-topbar h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--accent);flex:1;}
+.vbtn{padding:6px 14px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.76rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.vbtn:hover{background:var(--tag);border-color:var(--accent);}
+.vbtn.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.vbtn.primary:hover{background:var(--accent2);}
+.vbtn.danger{background:#fee2e2;color:#991b1b;border-color:#fca5a5;}
+
+/* VOCAB SUB-NAV */
+.vocab-subnav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.vsn-btn{flex:1;min-width:110px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 10px;cursor:pointer;text-align:center;transition:all .2s;box-shadow:0 2px 8px var(--shadow);}
+.vsn-btn:hover,.vsn-btn.active{border-color:var(--accent);background:var(--tag);}
+.vsn-icon{font-size:1.8rem;margin-bottom:4px;}
+.vsn-name{font-size:.8rem;font-weight:700;color:var(--text);}
+.vsn-desc{font-size:.68rem;color:var(--text2);margin-top:2px;}
+
+/* STATS */
+.vocab-stats{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.stat-card{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:9px 14px;flex:1;min-width:80px;text-align:center;box-shadow:0 2px 8px var(--shadow);}
+.stat-num{font-size:1.4rem;font-weight:800;color:var(--accent);font-family:'Playfair Display',serif;}
+.stat-lbl{font-size:.68rem;color:var(--text2);font-weight:600;margin-top:1px;}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.filter-lbl{font-size:.75rem;font-weight:700;color:var(--text2);}
+.filter-btn{padding:3px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:.72rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ════════════════════════════════════════════
+   FLASHCARD WITH IMAGE
+════════════════════════════════════════════ */
+.fc-outer{max-width:480px;margin:0 auto;}
+
+/* Deck selector */
+.deck-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.deck-lbl{font-size:.75rem;font-weight:700;color:var(--text2);}
+.deck-btn{padding:3px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-size:.73rem;font-weight:600;cursor:pointer;transition:all .18s;}
+.deck-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.fc-scene{perspective:1400px;margin-bottom:14px;}
+.fc-card{
+  position:relative;width:100%;padding-top:68%;
+  cursor:pointer;transition:transform .7s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.fc-card.flipped{transform:rotateY(180deg);}
+.fc-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:20px;overflow:hidden;border:2px solid var(--border);
+  box-shadow:0 12px 40px var(--shadow);display:flex;flex-direction:column;
+}
+.fc-back-face{transform:rotateY(180deg);}
+
+/* FRONT: image + word */
+.fc-img-wrap{
+  flex:1;position:relative;overflow:hidden;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;min-height:0;
+}
+.fc-img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .4s;}
+.fc-img-placeholder{font-size:4rem;opacity:.3;}
+.fc-img-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(0,0,0,.72) 0%,rgba(0,0,0,.1) 55%,transparent 100%);
+}
+.fc-img-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--surface2);font-size:.8rem;color:var(--text2);}
+
+.fc-front-info{
+  position:absolute;bottom:0;left:0;right:0;padding:16px 18px 14px;
+  background:linear-gradient(to top,rgba(0,0,0,.75),transparent);
+}
+.fc-word-jp{font-family:'Noto Sans JP',sans-serif;font-size:2.2rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);line-height:1.1;}
+.fc-word-read{font-family:'Noto Sans JP',sans-serif;font-size:1rem;color:rgba(255,255,255,.85);margin-top:3px;}
+.fc-category-badge{
+  position:absolute;top:12px;left:12px;
+  background:var(--accent);color:#fff;font-size:.68rem;font-weight:700;
+  padding:3px 10px;border-radius:20px;letter-spacing:.4px;
+}
+.fc-level-badge{
+  position:absolute;top:12px;right:12px;
+  background:rgba(0,0,0,.5);color:#fff;font-size:.65rem;font-weight:700;
+  padding:3px 9px;border-radius:20px;backdrop-filter:blur(4px);
+}
+.fc-tap-hint{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(0,0,0,.35);color:#fff;font-size:.78rem;font-weight:700;
+  padding:8px 16px;border-radius:20px;backdrop-filter:blur(4px);
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.fc-card:not(.flipped):hover .fc-tap-hint{opacity:1;}
+
+/* BACK: full info */
+.fc-back-content{
+  flex:1;display:flex;flex-direction:column;background:var(--surface);padding:0;overflow:hidden;
+}
+.fc-back-img-strip{
+  height:140px;position:relative;overflow:hidden;background:var(--surface2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.fc-back-img{width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.7);position:absolute;inset:0;}
+.fc-back-img-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;}
+.fc-back-jp{font-family:'Noto Sans JP',sans-serif;font-size:2.6rem;font-weight:700;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6);}
+.fc-back-read{font-family:'Noto Sans JP',sans-serif;font-size:1rem;color:rgba(255,255,255,.9);margin-top:3px;}
+.fc-back-body{flex:1;padding:14px 18px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}
+.fc-meaning-big{font-size:1.5rem;font-weight:800;color:var(--text);}
+.fc-meaning-tag{font-size:.68rem;font-weight:700;background:var(--tag);color:var(--accent2);padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:2px;}
+.fc-example-wrap{background:var(--surface2);border-radius:10px;padding:10px 12px;border-left:3px solid var(--accent);}
+.fc-example-jp{font-family:'Noto Sans JP',sans-serif;font-size:.95rem;color:var(--text);font-weight:500;}
+.fc-example-id{font-size:.78rem;color:var(--text2);margin-top:3px;}
+.fc-extra{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+.fc-extra-tag{font-size:.72rem;background:var(--surface2);color:var(--text2);padding:3px 9px;border-radius:8px;border:1px solid var(--border);}
+
+/* FC CONTROLS */
+.fc-controls{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:10px;}
+.fc-nav-btn{padding:8px 18px;border-radius:50px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.fc-nav-btn:hover{background:var(--tag);border-color:var(--accent);}
+.fc-counter{font-size:.8rem;color:var(--text2);font-weight:700;padding:5px 12px;background:var(--surface2);border-radius:20px;}
+.know-row{display:flex;gap:8px;justify-content:center;margin-bottom:12px;}
+.know-btn{flex:1;max-width:120px;padding:9px;border-radius:11px;border:none;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.know-no{background:#fde8e8;color:#991b1b;}.know-no:hover{background:#fecaca;}
+.know-almost{background:#fef3c7;color:#92400e;}.know-almost:hover{background:#fde68a;}
+.know-yes{background:#d1fae5;color:#065f46;}.know-yes:hover{background:#a7f3d0;}
+.fc-util-row{display:flex;gap:8px;justify-content:center;}
+
+/* ════════════════════════════════════════════
+   QUIZ
+════════════════════════════════════════════ */
+.quiz-outer{max-width:520px;margin:0 auto;}
+.quiz-type-select{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.qts-btn{flex:1;min-width:100px;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:.78rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.qts-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.quiz-q-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:14px;box-shadow:0 4px 18px var(--shadow);}
+.quiz-q-img{width:100%;height:180px;object-fit:cover;display:block;}
+.quiz-q-img-placeholder{width:100%;height:180px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:3rem;}
+.quiz-q-body{padding:18px 18px 14px;text-align:center;}
+.quiz-q-label{font-size:.68rem;font-weight:800;letter-spacing:1.5px;color:var(--text2);text-transform:uppercase;margin-bottom:8px;}
+.quiz-q-word{font-family:'Noto Sans JP',sans-serif;font-size:2.4rem;font-weight:700;color:var(--text);}
+.quiz-q-read{font-family:'Noto Sans JP',sans-serif;font-size:.95rem;color:var(--accent);margin-top:4px;}
+.quiz-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.quiz-opt{padding:12px 16px;border-radius:11px;border:2px solid var(--border);background:var(--surface);color:var(--text);font-size:.92rem;cursor:pointer;transition:all .2s;text-align:left;font-family:'DM Sans','Noto Sans JP',sans-serif;font-weight:500;}
+.quiz-opt:hover:not(.locked){background:var(--surface2);border-color:var(--accent);}
+.quiz-opt.correct{background:#d1fae5;border-color:#059669;color:#065f46;}
+.quiz-opt.wrong{background:#fde8e8;border-color:#dc2626;color:#991b1b;}
+.quiz-opt.locked{cursor:default;}
+.quiz-fb{text-align:center;font-size:.95rem;font-weight:700;min-height:24px;margin-bottom:8px;}
+.quiz-next{display:block;width:100%;padding:11px;border-radius:11px;border:none;background:var(--accent);color:#fff;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.quiz-next:hover{background:var(--accent2);}
+.quiz-scoreline{text-align:center;font-size:.75rem;color:var(--text2);font-weight:600;margin-top:8px;}
+
+/* ── WORD TABLE ── */
+.word-table-wrap{overflow-x:auto;border-radius:11px;border:1.5px solid var(--border);margin-bottom:12px;}
+table{width:100%;border-collapse:collapse;background:var(--surface);}
+th{background:var(--surface2);padding:8px 10px;font-size:.7rem;font-weight:800;color:var(--text2);text-align:left;letter-spacing:.4px;text-transform:uppercase;}
+td{padding:8px 10px;font-size:.85rem;border-top:1px solid var(--border);color:var(--text);font-family:'DM Sans','Noto Sans JP',sans-serif;vertical-align:middle;}
+tr:hover td{background:var(--surface2);}
+.td-img{width:44px;height:36px;object-fit:cover;border-radius:6px;display:block;}
+.td-img-ph{width:44px;height:36px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.td-jp{font-family:'Noto Sans JP',sans-serif;font-size:1rem;font-weight:700;}
+.td-read{color:var(--accent);font-family:'Noto Sans JP',sans-serif;font-size:.8rem;}
+.badge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:.65rem;font-weight:700;}
+.badge-know{background:#d1fae5;color:#065f46;}
+.badge-no{background:#fde8e8;color:#991b1b;}
+.badge-almost{background:#fef3c7;color:#92400e;}
+.badge-new{background:var(--tag);color:var(--accent2);}
+.badge-level{background:var(--surface2);color:var(--text2);}
+.tbl-del{background:none;border:none;color:var(--text2);cursor:pointer;padding:2px 5px;font-size:.85rem;opacity:.3;transition:all .2s;}
+tr:hover .tbl-del{opacity:1;}.tbl-del:hover{color:#dc2626;}
+
+/* ADD WORD */
+.add-word-panel{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px var(--shadow);}
+.add-word-panel h3{font-size:.88rem;font-weight:800;color:var(--accent);margin-bottom:10px;}
+.aw-grid{display:flex;gap:8px;flex-wrap:wrap;}
+.aw-field{flex:1;min-width:110px;display:flex;flex-direction:column;gap:3px;}
+.aw-field label{font-size:.7rem;font-weight:700;color:var(--text2);}
+.aw-input,.aw-select{padding:7px 9px;border:1.5px solid var(--border);border-radius:8px;font-size:.88rem;background:var(--surface);color:var(--text);font-family:'Noto Sans JP','DM Sans',sans-serif;outline:none;transition:border-color .2s;width:100%;}
+.aw-input:focus,.aw-select:focus{border-color:var(--accent);}
+.aw-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;}
+
+/* RESULT */
+.result-card{background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:28px 20px;text-align:center;box-shadow:0 4px 20px var(--shadow);}
+.result-emoji{font-size:3.2rem;margin-bottom:10px;}
+.result-title{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--accent);margin-bottom:4px;}
+.result-score{font-size:2.6rem;font-weight:800;color:var(--text);margin-bottom:3px;}
+.result-sub{font-size:.84rem;color:var(--text2);margin-bottom:18px;}
+.result-breakdown{display:flex;gap:10px;justify-content:center;margin-bottom:18px;flex-wrap:wrap;}
+.rb-item{background:var(--surface2);border-radius:9px;padding:7px 14px;text-align:center;}
+.rb-num{font-size:1.25rem;font-weight:800;}.rb-lbl{font-size:.68rem;color:var(--text2);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(5px);}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:20px;padding:24px 20px;width:92%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);border:1.5px solid var(--border);}
+.modal h3{font-family:'Playfair Display',serif;color:var(--accent);font-size:1.2rem;margin-bottom:14px;}
+.modal-field{margin-bottom:11px;}.modal-field label{display:block;font-size:.76rem;font-weight:700;color:var(--text2);margin-bottom:3px;}
+.modal-input{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:.9rem;background:var(--surface);color:var(--text);font-family:'DM Sans','Noto Sans JP',sans-serif;outline:none;}
+.modal-input:focus{border-color:var(--accent);}
+.icon-picker{display:flex;flex-wrap:wrap;gap:6px;}
+.icon-opt{width:34px;height:34px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:all .2s;background:var(--surface);}
+.icon-opt:hover,.icon-opt.selected{background:var(--tag);border-color:var(--accent);transform:scale(1.1);}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end;}
+.modal-cancel{padding:7px 14px;background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:'DM Sans',sans-serif;}
+.modal-ok{padding:7px 18px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:700;font-family:'DM Sans',sans-serif;}
+
+@media(max-width:480px){
+  .header{padding:9px 10px 8px;}.app-title{font-size:1.2rem;}.container{padding:12px 8px 0;}
+  .jp-key{width:28px;height:27px;font-size:.8rem;}.fc-word-jp{font-size:1.7rem;}.quiz-q-word{font-size:1.9rem;}
+}
+</style>
+</head>
+<body data-theme="autumn">
+
+<div class="header">
+  <div class="app-title">List<span>Ku</span> ✍️</div>
+  <div class="tab-nav">
+    <button class="tab-nav-btn active" onclick="switchPage('checklist',this)">📋 Checklist</button>
+    <button class="tab-nav-btn" onclick="switchPage('vocab',this)">🈶 Kosakata JP</button>
+  </div>
+  <div class="theme-bar" id="themeBar"></div>
+</div>
+
+<!-- ═══ CHECKLIST ═══ -->
+<div class="container page active" id="page-checklist">
+  <div id="mainContainer"></div>
+  <div class="new-list-wrap"><button class="new-list-btn" onclick="openNewListModal()">＋ Buat List Baru</button></div>
+</div>
+
+<!-- ═══ VOCAB ═══ -->
+<div class="container page" id="page-vocab">
+  <div class="vocab-topbar">
+    <h2>🈶 Hafalan Kosakata Jepang</h2>
+    <button class="vbtn" onclick="loadDefaultVocab()">📥 Muat Kosakata N5</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="vocab-stats" id="vocabStats"></div>
+
+  <!-- Sub nav -->
+  <div class="vocab-subnav">
+    <div class="vsn-btn active" id="vsn-flashcard" onclick="showVocabSub('flashcard',this)">
+      <div class="vsn-icon">🃏</div><div class="vsn-name">Flashcard</div><div class="vsn-desc">Belajar + Gambar</div>
+    </div>
+    <div class="vsn-btn" id="vsn-quiz" onclick="showVocabSub('quiz',this)">
+      <div class="vsn-icon">🎯</div><div class="vsn-name">Kuis</div><div class="vsn-desc">Pilihan ganda</div>
+    </div>
+    <div class="vsn-btn" id="vsn-list" onclick="showVocabSub('list',this)">
+      <div class="vsn-icon">📚</div><div class="vsn-name">Daftar Kata</div><div class="vsn-desc">Kelola & tambah</div>
+    </div>
+  </div>
+
+  <!-- FLASHCARD SUB -->
+  <div id="vsub-flashcard">
+    <div class="fc-outer">
+      <div class="deck-selector" id="fcDeckSelector">
+        <span class="deck-lbl">Deck:</span>
+      </div>
+      <div class="filter-bar" id="fcFilterBar"><span class="filter-lbl">Filter:</span></div>
+      <div class="fc-scene">
+        <div class="fc-card" id="fcCard" onclick="flipCard()">
+          <div class="fc-face" id="fcFront"></div>
+          <div class="fc-face fc-back-face" id="fcBack"></div>
+        </div>
+      </div>
+      <div class="fc-controls">
+        <button class="fc-nav-btn" onclick="fcNav(-1)">◀ Prev</button>
+        <span class="fc-counter" id="fcCounter">0/0</span>
+        <button class="fc-nav-btn" onclick="fcNav(1)">Next ▶</button>
+      </div>
+      <div class="know-row" id="knowRow" style="display:none">
+        <button class="know-btn know-no" onclick="markKnow('no')">✗ Belum</button>
+        <button class="know-btn know-almost" onclick="markKnow('almost')">△ Hampir</button>
+        <button class="know-btn know-yes" onclick="markKnow('yes')">✓ Hafal!</button>
+      </div>
+      <div class="fc-util-row">
+        <button class="vbtn" onclick="shuffleFC()">🔀 Acak</button>
+        <button class="vbtn" onclick="resetFC()">🔄 Reset</button>
+        <button class="vbtn" onclick="fcFilterNew()">★ Belum Hafal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ SUB -->
+  <div id="vsub-quiz" style="display:none">
+    <div class="quiz-outer">
+      <div class="filter-bar" id="quizFilterBar"><span class="filter-lbl">Kategori:</span></div>
+      <div class="quiz-type-select">
+        <button class="qts-btn active" id="qtype-jp" onclick="setQuizType('jp2id',this)">🈶→🇮🇩 JP→Indo</button>
+        <button class="qts-btn" id="qtype-id" onclick="setQuizType('id2jp',this)">🇮🇩→🈶 Indo→JP</button>
+        <button class="qts-btn" id="qtype-img" onclick="setQuizType('img2jp',this)">🖼→🈶 Gambar→JP</button>
+      </div>
+      <div id="quizContent"></div>
+    </div>
+  </div>
+
+  <!-- LIST SUB -->
+  <div id="vsub-list" style="display:none">
+    <div class="add-word-panel">
+      <h3>➕ Tambah Kata Baru</h3>
+      <div class="aw-grid">
+        <div class="aw-field"><label>Kata JP (漢字/かな)</label><input class="aw-input" id="aw-jp" placeholder="食べる" maxlength="30"></div>
+        <div class="aw-field"><label>Bacaan (ふりがな)</label><input class="aw-input" id="aw-read" placeholder="たべる" maxlength="30"></div>
+        <div class="aw-field"><label>Arti Indonesia</label><input class="aw-input" id="aw-meaning" placeholder="makan" maxlength="60"></div>
+        <div class="aw-field"><label>Contoh Kalimat JP</label><input class="aw-input" id="aw-example" placeholder="毎日食べます。" maxlength="80"></div>
+        <div class="aw-field"><label>Terjemahan Contoh</label><input class="aw-input" id="aw-ex-id" placeholder="Saya makan setiap hari." maxlength="100"></div>
+        <div class="aw-field"><label>Kata Kunci Gambar (EN)</label><input class="aw-input" id="aw-img" placeholder="eating food" maxlength="40"></div>
+        <div class="aw-field"><label>Kategori</label>
+          <select class="aw-select" id="aw-cat"><option>Kata Kerja</option><option>Kata Benda</option><option>Kata Sifat</option><option>Kata Keterangan</option><option>Ungkapan</option><option>Angka & Waktu</option><option>Warna</option><option>Makanan</option><option>Alam</option><option>Lainnya</option></select>
+        </div>
+        <div class="aw-field"><label>Level</label>
+          <select class="aw-select" id="aw-level"><option>N5</option><option>N4</option><option>N3</option><option>N2</option><option>N1</option></select>
+        </div>
+      </div>
+      <div class="aw-actions">
+        <button class="vbtn primary" onclick="addWord()">＋ Simpan</button>
+        <button class="vbtn" onclick="loadDefaultVocab()">📥 Muat Contoh N5</button>
+        <button class="vbtn danger" onclick="clearWords()">🗑 Hapus Semua</button>
+      </div>
+    </div>
+    <div class="filter-bar" id="listFilterBar"><span class="filter-lbl">Filter:</span></div>
+    <div class="word-table-wrap">
+      <table><thead><tr><th>Img</th><th>Jepang</th><th>Bacaan</th><th>Arti</th><th>Kategori</th><th>Lv</th><th>Status</th><th></th></tr></thead>
+      <tbody id="wordTableBody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>📋 Buat List Baru</h3>
+    <div class="modal-field"><label>Nama List</label><input class="modal-input" id="newListName" placeholder="Belanja Minggu Ini…" maxlength="40"></div>
+    <div class="modal-field"><label>Pilih Ikon</label><div class="icon-picker" id="iconPicker"></div></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Batal</button>
+      <button class="modal-ok" onclick="createNewList()">Buat ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONSTANTS
+════════════════════════════════════════════ */
+const THEMES=[
+  {id:'autumn',l:'Gugur',e:'🍂',b:'#f0ddc4',t:'#8b4513',a:'#c17b3f'},
+  {id:'sakura',l:'Sakura',e:'🌸',b:'#fce4ee',t:'#9c3a5f',a:'#d4638a'},
+  {id:'ocean', l:'Laut',  e:'🌊',b:'#d0eaf4',t:'#145f84',a:'#2a7fa8'},
+  {id:'forest',l:'Hutan', e:'🌿',b:'#d4e8cc',t:'#1e5a1e',a:'#3a7a3a'},
+  {id:'night', l:'Malam', e:'🌙',b:'#252636',t:'#9090c0',a:'#7c6ef7'},
+];
+const ICONS=['📋','🛒','💼','📝','🏠','🎯','🍱','📚','💊','✈️','🎁','🔧','📱','🏋️','🌸','⭐','🎨','🎵','🍕','🧹'];
+const HIRAGANA=[['あ','い','う','え','お'],['か','き','く','け','こ'],['さ','し','す','せ','そ'],['た','ち','つ','て','と'],['な','に','ぬ','ね','の'],['は','ひ','ふ','へ','ほ'],['ま','み','む','め','も'],['や','','ゆ','','よ'],['ら','り','る','れ','ろ'],['わ','','を','','ん'],['っ','ゃ','ゅ','ょ','ー'],['が','ぎ','ぐ','げ','ご'],['ざ','じ','ず','ぜ','ぞ'],['だ','ぢ','づ','で','ど'],['ば','び','ぶ','べ','ぼ'],['ぱ','ぴ','ぷ','ぺ','ぽ']];
+const KATAKANA=[['ア','イ','ウ','エ','オ'],['カ','キ','ク','ケ','コ'],['サ','シ','ス','セ','ソ'],['タ','チ','ツ','テ','ト'],['ナ','ニ','ヌ','ネ','ノ'],['ハ','ヒ','フ','ヘ','ホ'],['マ','ミ','ム','メ','モ'],['ヤ','','ユ','','ヨ'],['ラ','リ','ル','レ','ロ'],['ワ','','ヲ','','ン'],['ッ','ャ','ュ','ョ','ー'],['ガ','ギ','グ','ゲ','ゴ'],['ザ','ジ','ズ','ゼ','ゾ'],['ダ','ヂ','ヅ','デ','ド'],['バ','ビ','ブ','ベ','ボ'],['パ','ピ','プ','ペ','ポ']];
+const KANJI=['日','月','火','水','木','金','土','一','二','三','四','五','六','七','八','九','十','百','千','万','人','大','小','上','下','中','外','前','後','左','右','食','飲','買','見','行','来','帰','仕','事','会','店','家','学','校','駅','車','本','紙','手','目','今','明','昨','年','週','時','分','何'];
+
+// Built-in comprehensive N5 vocab with image search keywords
+const BUILTIN_VOCAB = [
+  // ── Kata Benda: Orang & Keluarga
+  {jp:'人',read:'ひと',meaning:'orang',example:'あの人は先生です。',exId:'Orang itu adalah guru.',cat:'Kata Benda',level:'N5',img:'person standing'},
+  {jp:'子供',read:'こども',meaning:'anak-anak',example:'子供が遊んでいます。',exId:'Anak-anak sedang bermain.',cat:'Kata Benda',level:'N5',img:'children playing'},
+  {jp:'学生',read:'がくせい',meaning:'pelajar / mahasiswa',example:'彼は大学生です。',exId:'Dia adalah mahasiswa.',cat:'Kata Benda',level:'N5',img:'student studying'},
+  {jp:'先生',read:'せんせい',meaning:'guru',example:'田中先生は優しいです。',exId:'Guru Tanaka baik hati.',cat:'Kata Benda',level:'N5',img:'teacher classroom'},
+  {jp:'友達',read:'ともだち',meaning:'teman',example:'友達とランチを食べた。',exId:'Makan siang bersama teman.',cat:'Kata Benda',level:'N5',img:'friends together'},
+  // ── Kata Benda: Tempat
+  {jp:'学校',read:'がっこう',meaning:'sekolah',example:'毎日学校に行きます。',exId:'Saya pergi ke sekolah setiap hari.',cat:'Kata Benda',level:'N5',img:'school building'},
+  {jp:'家',read:'いえ',meaning:'rumah',example:'家に帰ります。',exId:'Saya pulang ke rumah.',cat:'Kata Benda',level:'N5',img:'house home'},
+  {jp:'駅',read:'えき',meaning:'stasiun',example:'駅まで歩きます。',exId:'Berjalan sampai stasiun.',cat:'Kata Benda',level:'N5',img:'train station Japan'},
+  {jp:'病院',read:'びょういん',meaning:'rumah sakit',example:'病院に行きました。',exId:'Saya pergi ke rumah sakit.',cat:'Kata Benda',level:'N5',img:'hospital building'},
+  {jp:'スーパー',read:'スーパー',meaning:'supermarket',example:'スーパーで買い物します。',exId:'Belanja di supermarket.',cat:'Kata Benda',level:'N5',img:'supermarket shopping'},
+  {jp:'レストラン',read:'レストラン',meaning:'restoran',example:'レストランで食べます。',exId:'Makan di restoran.',cat:'Kata Benda',level:'N5',img:'restaurant dining'},
+  // ── Kata Benda: Makanan & Minuman
+  {jp:'ご飯',read:'ごはん',meaning:'nasi / makanan',example:'ご飯を食べましょう。',exId:'Ayo makan.',cat:'Makanan',level:'N5',img:'japanese rice bowl'},
+  {jp:'水',read:'みず',meaning:'air',example:'水を飲みます。',exId:'Minum air.',cat:'Makanan',level:'N5',img:'glass of water'},
+  {jp:'お茶',read:'おちゃ',meaning:'teh',example:'お茶を一杯ください。',exId:'Tolong satu cangkir teh.',cat:'Makanan',level:'N5',img:'japanese green tea'},
+  {jp:'パン',read:'パン',meaning:'roti',example:'朝パンを食べます。',exId:'Makan roti di pagi hari.',cat:'Makanan',level:'N5',img:'bread loaf'},
+  {jp:'肉',read:'にく',meaning:'daging',example:'牛肉が好きです。',exId:'Saya suka daging sapi.',cat:'Makanan',level:'N5',img:'meat beef'},
+  {jp:'魚',read:'さかな',meaning:'ikan',example:'魚を食べます。',exId:'Makan ikan.',cat:'Makanan',level:'N5',img:'fresh fish'},
+  {jp:'野菜',read:'やさい',meaning:'sayuran',example:'野菜は体にいいです。',exId:'Sayuran baik untuk tubuh.',cat:'Makanan',level:'N5',img:'fresh vegetables'},
+  {jp:'果物',read:'くだもの',meaning:'buah-buahan',example:'果物が好きです。',exId:'Saya suka buah.',cat:'Makanan',level:'N5',img:'fresh fruits'},
+  {jp:'りんご',read:'りんご',meaning:'apel',example:'りんごを一つください。',exId:'Tolong satu apel.',cat:'Makanan',level:'N5',img:'red apple'},
+  // ── Kata Benda: Transportasi
+  {jp:'電車',read:'でんしゃ',meaning:'kereta listrik',example:'電車で学校に行きます。',exId:'Pergi ke sekolah naik kereta.',cat:'Kata Benda',level:'N5',img:'japanese train'},
+  {jp:'車',read:'くるま',meaning:'mobil',example:'車で会社に行きます。',exId:'Pergi ke kantor naik mobil.',cat:'Kata Benda',level:'N5',img:'car driving'},
+  {jp:'バス',read:'バス',meaning:'bus',example:'バスに乗ります。',exId:'Naik bus.',cat:'Kata Benda',level:'N5',img:'city bus'},
+  {jp:'飛行機',read:'ひこうき',meaning:'pesawat terbang',example:'飛行機で行きます。',exId:'Pergi naik pesawat.',cat:'Kata Benda',level:'N5',img:'airplane flying'},
+  // ── Kata Benda: Alam
+  {jp:'山',read:'やま',meaning:'gunung',example:'富士山は高いです。',exId:'Gunung Fuji tinggi.',cat:'Alam',level:'N5',img:'mountain nature'},
+  {jp:'川',read:'かわ',meaning:'sungai',example:'川で泳ぎます。',exId:'Berenang di sungai.',cat:'Alam',level:'N5',img:'river stream'},
+  {jp:'海',read:'うみ',meaning:'laut',example:'夏に海へ行きます。',exId:'Pergi ke laut di musim panas.',cat:'Alam',level:'N5',img:'ocean sea beach'},
+  {jp:'花',read:'はな',meaning:'bunga',example:'桜の花が美しいです。',exId:'Bunga sakura indah.',cat:'Alam',level:'N5',img:'cherry blossom flower'},
+  {jp:'木',read:'き',meaning:'pohon',example:'公園に木があります。',exId:'Ada pohon di taman.',cat:'Alam',level:'N5',img:'tree nature'},
+  {jp:'空',read:'そら',meaning:'langit',example:'空が青いです。',exId:'Langit berwarna biru.',cat:'Alam',level:'N5',img:'blue sky clouds'},
+  // ── Kata Kerja
+  {jp:'食べる',read:'たべる',meaning:'makan',example:'ご飯を食べます。',exId:'Makan nasi.',cat:'Kata Kerja',level:'N5',img:'person eating food'},
+  {jp:'飲む',read:'のむ',meaning:'minum',example:'コーヒーを飲みます。',exId:'Minum kopi.',cat:'Kata Kerja',level:'N5',img:'person drinking coffee'},
+  {jp:'行く',read:'いく',meaning:'pergi',example:'学校に行きます。',exId:'Pergi ke sekolah.',cat:'Kata Kerja',level:'N5',img:'walking going'},
+  {jp:'来る',read:'くる',meaning:'datang',example:'友達が来ます。',exId:'Teman datang.',cat:'Kata Kerja',level:'N5',img:'person arriving'},
+  {jp:'見る',read:'みる',meaning:'melihat / menonton',example:'映画を見ます。',exId:'Menonton film.',cat:'Kata Kerja',level:'N5',img:'watching movie'},
+  {jp:'聞く',read:'きく',meaning:'mendengar / bertanya',example:'音楽を聞きます。',exId:'Mendengarkan musik.',cat:'Kata Kerja',level:'N5',img:'listening to music headphones'},
+  {jp:'書く',read:'かく',meaning:'menulis',example:'手紙を書きます。',exId:'Menulis surat.',cat:'Kata Kerja',level:'N5',img:'writing pen paper'},
+  {jp:'読む',read:'よむ',meaning:'membaca',example:'本を読みます。',exId:'Membaca buku.',cat:'Kata Kerja',level:'N5',img:'person reading book'},
+  {jp:'話す',read:'はなす',meaning:'berbicara',example:'日本語で話します。',exId:'Berbicara dalam bahasa Jepang.',cat:'Kata Kerja',level:'N5',img:'people talking conversation'},
+  {jp:'買う',read:'かう',meaning:'membeli',example:'服を買います。',exId:'Membeli pakaian.',cat:'Kata Kerja',level:'N5',img:'shopping buying clothes'},
+  {jp:'帰る',read:'かえる',meaning:'pulang',example:'家に帰ります。',exId:'Pulang ke rumah.',cat:'Kata Kerja',level:'N5',img:'person going home'},
+  {jp:'起きる',read:'おきる',meaning:'bangun tidur',example:'7時に起きます。',exId:'Bangun jam 7.',cat:'Kata Kerja',level:'N5',img:'waking up morning'},
+  {jp:'寝る',read:'ねる',meaning:'tidur',example:'早く寝ます。',exId:'Tidur lebih awal.',cat:'Kata Kerja',level:'N5',img:'sleeping bed night'},
+  {jp:'働く',read:'はたらく',meaning:'bekerja',example:'毎日働きます。',exId:'Bekerja setiap hari.',cat:'Kata Kerja',level:'N5',img:'working office'},
+  {jp:'遊ぶ',read:'あそぶ',meaning:'bermain',example:'公園で遊びます。',exId:'Bermain di taman.',cat:'Kata Kerja',level:'N5',img:'children playing park'},
+  // ── Kata Sifat
+  {jp:'大きい',read:'おおきい',meaning:'besar',example:'大きい犬がいます。',exId:'Ada anjing besar.',cat:'Kata Sifat',level:'N5',img:'large big dog'},
+  {jp:'小さい',read:'ちいさい',meaning:'kecil',example:'小さい猫がいます。',exId:'Ada kucing kecil.',cat:'Kata Sifat',level:'N5',img:'small cat kitten'},
+  {jp:'新しい',read:'あたらしい',meaning:'baru',example:'新しい服を買いました。',exId:'Membeli baju baru.',cat:'Kata Sifat',level:'N5',img:'new clothes shopping'},
+  {jp:'古い',read:'ふるい',meaning:'lama / tua',example:'古い建物があります。',exId:'Ada bangunan tua.',cat:'Kata Sifat',level:'N5',img:'old building ancient'},
+  {jp:'暑い',read:'あつい',meaning:'panas',example:'今日は暑いです。',exId:'Hari ini panas.',cat:'Kata Sifat',level:'N5',img:'hot summer sun'},
+  {jp:'寒い',read:'さむい',meaning:'dingin',example:'冬は寒いです。',exId:'Musim dingin itu dingin.',cat:'Kata Sifat',level:'N5',img:'cold winter snow'},
+  {jp:'楽しい',read:'たのしい',meaning:'menyenangkan',example:'旅行は楽しかった。',exId:'Perjalanan itu menyenangkan.',cat:'Kata Sifat',level:'N5',img:'fun happy travel'},
+  {jp:'難しい',read:'むずかしい',meaning:'sulit',example:'試験は難しいです。',exId:'Ujian itu sulit.',cat:'Kata Sifat',level:'N5',img:'difficult exam studying'},
+  {jp:'易しい',read:'やさしい',meaning:'mudah',example:'この問題は易しいです。',exId:'Soal ini mudah.',cat:'Kata Sifat',level:'N5',img:'easy simple task'},
+  {jp:'美しい',read:'うつくしい',meaning:'indah / cantik',example:'桜は美しいです。',exId:'Sakura itu indah.',cat:'Kata Sifat',level:'N5',img:'beautiful sakura scenery'},
+  // ── Warna
+  {jp:'赤',read:'あか',meaning:'merah',example:'赤いバラが好きです。',exId:'Saya suka mawar merah.',cat:'Warna',level:'N5',img:'red color vibrant'},
+  {jp:'青',read:'あお',meaning:'biru',example:'空は青いです。',exId:'Langit berwarna biru.',cat:'Warna',level:'N5',img:'blue color sky'},
+  {jp:'白',read:'しろ',meaning:'putih',example:'白い雪が降っています。',exId:'Salju putih turun.',cat:'Warna',level:'N5',img:'white snow winter'},
+  {jp:'黒',read:'くろ',meaning:'hitam',example:'黒い猫がいます。',exId:'Ada kucing hitam.',cat:'Warna',level:'N5',img:'black cat'},
+  {jp:'緑',read:'みどり',meaning:'hijau',example:'森は緑が多いです。',exId:'Hutan banyak hijaunya.',cat:'Warna',level:'N5',img:'green forest nature'},
+  // ── Ungkapan
+  {jp:'ありがとう',read:'ありがとう',meaning:'terima kasih',example:'ありがとうございます！',exId:'Terima kasih banyak!',cat:'Ungkapan',level:'N5',img:'thank you gratitude'},
+  {jp:'すみません',read:'すみません',meaning:'permisi / maaf',example:'すみません、駅はどこですか？',exId:'Permisi, di mana stasiunnya?',cat:'Ungkapan',level:'N5',img:'excuse me apologize'},
+  {jp:'おはよう',read:'おはよう',meaning:'selamat pagi',example:'おはようございます！',exId:'Selamat pagi!',cat:'Ungkapan',level:'N5',img:'good morning sunrise'},
+  {jp:'こんにちは',read:'こんにちは',meaning:'selamat siang / halo',example:'こんにちは、元気ですか？',exId:'Halo, apa kabar?',cat:'Ungkapan',level:'N5',img:'greeting hello wave'},
+  {jp:'さようなら',read:'さようなら',meaning:'selamat tinggal',example:'さようなら、またね！',exId:'Selamat tinggal, sampai jumpa!',cat:'Ungkapan',level:'N5',img:'goodbye farewell waving'},
+  {jp:'いただきます',read:'いただきます',meaning:'ungkapan sebelum makan',example:'いただきます！',exId:'Selamat makan! (sebelum makan)',cat:'Ungkapan',level:'N5',img:'japanese meal itadakimasu'},
+  // ── Waktu
+  {jp:'今日',read:'きょう',meaning:'hari ini',example:'今日は月曜日です。',exId:'Hari ini hari Senin.',cat:'Angka & Waktu',level:'N5',img:'today calendar day'},
+  {jp:'明日',read:'あした',meaning:'besok',example:'明日学校があります。',exId:'Besok ada sekolah.',cat:'Angka & Waktu',level:'N5',img:'tomorrow sunrise calendar'},
+  {jp:'昨日',read:'きのう',meaning:'kemarin',example:'昨日映画を見ました。',exId:'Kemarin menonton film.',cat:'Angka & Waktu',level:'N5',img:'yesterday memory past'},
+  {jp:'朝',read:'あさ',meaning:'pagi',example:'朝ご飯を食べます。',exId:'Makan pagi.',cat:'Angka & Waktu',level:'N5',img:'morning sunrise breakfast'},
+  {jp:'昼',read:'ひる',meaning:'siang',example:'昼ご飯を食べます。',exId:'Makan siang.',cat:'Angka & Waktu',level:'N5',img:'midday noon lunch'},
+  {jp:'夜',read:'よる',meaning:'malam',example:'夜は静かです。',exId:'Malam hari sepi.',cat:'Angka & Waktu',level:'N5',img:'night city lights dark'},
+  {jp:'春',read:'はる',meaning:'musim semi',example:'春に花が咲きます。',exId:'Bunga mekar di musim semi.',cat:'Angka & Waktu',level:'N5',img:'spring cherry blossom Japan'},
+  {jp:'夏',read:'なつ',meaning:'musim panas',example:'夏は暑いです。',exId:'Musim panas itu panas.',cat:'Angka & Waktu',level:'N5',img:'summer beach hot'},
+  {jp:'秋',read:'あき',meaning:'musim gugur',example:'秋に紅葉が見られます。',exId:'Bisa melihat daun merah di musim gugur.',cat:'Angka & Waktu',level:'N5',img:'autumn fall leaves red'},
+  {jp:'冬',read:'ふゆ',meaning:'musim dingin',example:'冬は雪が降ります。',exId:'Salju turun di musim dingin.',cat:'Angka & Waktu',level:'N5',img:'winter snow cold'},
+];
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let lists      = JSON.parse(localStorage.getItem('lk2_lists')||'null') || [
+  {id:1,name:'Belanja Groceries',icon:'🛒',items:[{id:1,text:'Beras 5kg',done:false},{id:2,text:'Telur 1 papan',done:true},{id:3,text:'Sayuran segar',done:false}]},
+  {id:2,name:'Pekerjaan Hari Ini',icon:'💼',items:[{id:1,text:'Meeting pukul 10',done:true},{id:2,text:'Kirim laporan',done:false}]},
+];
+let words      = JSON.parse(localStorage.getItem('lk2_words')||'[]');
+let appTheme   = localStorage.getItem('lk2_theme')||'autumn';
+let selIcon    = '📋';
+let jpOpen={}, jpMode={}, collapsed={};
+let vocabFilter='Semua';
+let fcDeck=[], fcIdx=0, fcFlipped=false, fcOnlyUnlearned=false;
+let quizDeck=[], quizIdx=0, quizScore=0, quizMiss=0, quizAnswered=false, quizType='jp2id';
+// image cache: keyword -> url
+const imgCache = JSON.parse(localStorage.getItem('lk2_imgcache')||'{}');
+
+function saveAll(){
+  localStorage.setItem('lk2_lists',JSON.stringify(lists));
+  localStorage.setItem('lk2_words',JSON.stringify(words));
+  localStorage.setItem('lk2_theme',appTheme);
+  localStorage.setItem('lk2_imgcache',JSON.stringify(imgCache));
+}
+
+/* ════════════════════════════════════════════
+   IMAGE LOADING via Unsplash Source (no key needed)
+════════════════════════════════════════════ */
+function getImgUrl(keyword, w=600, h=400) {
+  // Use Unsplash source URL — works without API key, returns real photos
+  const enc = encodeURIComponent(keyword);
+  return `https://source.unsplash.com/${w}x${h}/?${enc}`;
+}
+
+function setImgEl(el, keyword, placeholder='🖼') {
+  if (!keyword) { el.innerHTML=`<div style="font-size:2rem;opacity:.4">${placeholder}</div>`; return; }
+  const img = document.createElement('img');
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;border-radius:inherit;';
+  img.src = getImgUrl(keyword);
+  img.loading = 'lazy';
+  img.onerror = () => { el.textContent = placeholder; };
+  el.innerHTML = '';
+  el.appendChild(img);
+}
+
+/* ════════════════════════════════════════════
+   THEME
+════════════════════════════════════════════ */
+document.body.setAttribute('data-theme', appTheme);
+function buildThemeBar(){
+  const bar=document.getElementById('themeBar'); bar.innerHTML='';
+  THEMES.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='theme-btn'+(appTheme===t.id?' active':'');
+    b.style.background=t.b; b.style.color=t.t;
+    b.style.borderColor=appTheme===t.id?t.a:'transparent';
+    b.innerHTML=`${t.e} ${t.l}`;
+    b.onclick=()=>{appTheme=t.id;document.body.setAttribute('data-theme',t.id);saveAll();buildThemeBar();};
+    bar.appendChild(b);
+  });
+}
+
+/* ════════════════════════════════════════════
+   PAGE SWITCH
+════════════════════════════════════════════ */
+function switchPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.tab-nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='vocab'){renderVocabStats();showVocabSub('flashcard',document.getElementById('vsn-flashcard'));}
+}
+function showVocabSub(sub, el){
+  ['flashcard','quiz','list'].forEach(s=>{
+    document.getElementById('vsub-'+s).style.display= s===sub?'':'none';
+    document.getElementById('vsn-'+s).classList.toggle('active',s===sub);
+  });
+  if(sub==='flashcard') initFlashcard();
+  if(sub==='quiz'){ buildFilterBar('quizFilterBar'); startQuiz(); }
+  if(sub==='list'){ buildFilterBar('listFilterBar'); renderWordTable(); }
+}
+
+/* ════════════════════════════════════════════
+   CHECKLIST
+════════════════════════════════════════════ */
+function render(){
+  const c=document.getElementById('mainContainer'); c.innerHTML='';
+  lists.forEach(l=>c.appendChild(buildListEl(l)));
+}
+function buildListEl(lst){
+  const done=lst.items.filter(i=>i.done).length;
+  const pct=lst.items.length?Math.round(done/lst.items.length*100):0;
+  const isColl=collapsed[lst.id]; const jpO=jpOpen[lst.id]; const jpM=jpMode[lst.id]||'hiragana';
+  const sec=document.createElement('div');
+  sec.className='list-section'+(isColl?' collapsed':''); sec.id='list-'+lst.id;
+  sec.innerHTML=`<div class="list-header" onclick="toggleCollapse(${lst.id})">
+    <div class="list-title-row"><span class="list-icon">${lst.icon}</span><span class="list-name">${lst.name}</span><span class="list-count">${done}/${lst.items.length}</span></div>
+    <span class="toggle-chevron">▾</span></div>`;
+  const wrap=document.createElement('div'); wrap.className='items-wrap';
+  wrap.innerHTML=`<div class="prog-wrap"><div class="prog-lbl"><span>Progress</span><span>${pct}%</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+  if(!lst.items.length){const e=document.createElement('div');e.className='empty-state';e.textContent='Belum ada item ↓';wrap.appendChild(e);}
+  lst.items.forEach(item=>{
+    const row=document.createElement('div'); row.className='item-row'+(item.done?' done':'');
+    const cb=document.createElement('div'); cb.className='item-cb'+(item.done?' checked':''); cb.onclick=()=>toggleItem(lst.id,item.id);
+    const tw=document.createElement('div'); tw.className='itw';
+    const tx=document.createElement('div'); tx.className='item-text'; tx.textContent=item.text; tw.appendChild(tx);
+    const dl=document.createElement('button'); dl.className='item-del'; dl.innerHTML='✕';
+    dl.onclick=e=>{e.stopPropagation();deleteItem(lst.id,item.id);};
+    row.append(cb,tw,dl); wrap.appendChild(row);
+  });
+  // add form
+  const form=document.createElement('div'); form.className='add-form';
+  const ar=document.createElement('div'); ar.className='add-row';
+  const ia=document.createElement('div'); ia.className='input-area';
+  const inp=document.createElement('input'); inp.className='item-input'; inp.id=`inp-${lst.id}`; inp.placeholder='Tambah item…'; inp.maxLength=120;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')addItem(lst.id);});
+  const ib=document.createElement('button'); ib.className='ime-btn'+(jpO?' active':''); ib.innerHTML='🇯🇵';
+  ib.onclick=e=>{e.preventDefault();toggleJP(lst.id);};
+  ia.append(inp,ib);
+  const ab=document.createElement('button'); ab.className='add-btn'; ab.textContent='＋'; ab.onclick=()=>addItem(lst.id);
+  ar.append(ia,ab); form.appendChild(ar);
+  // JP panel
+  const panel=document.createElement('div'); panel.className='jp-panel'+(jpO?' open':'');
+  const tabs=document.createElement('div'); tabs.className='jp-tabs';
+  ['hiragana','katakana','kanji'].forEach(m=>{
+    const t=document.createElement('button'); t.className='jp-tab'+(jpM===m?' active':'');
+    t.textContent=m==='hiragana'?'ひらがな':m==='katakana'?'カタカナ':'漢字';
+    t.onclick=()=>{jpMode[lst.id]=m;reRenderList(lst.id);}; tabs.appendChild(t);
+  });
+  panel.appendChild(tabs);
+  const kd=document.createElement('div'); kd.className='jp-keys';
+  const cs=jpM==='hiragana'?HIRAGANA:jpM==='katakana'?KATAKANA:null;
+  (cs?cs.flat():KANJI).forEach(ch=>{
+    const k=document.createElement('button'); k.className='jp-key'; k.textContent=ch||'';
+    if(!ch){k.style.visibility='hidden';k.style.pointerEvents='none';}
+    k.onclick=()=>insChar(lst.id,ch); kd.appendChild(k);
+  });
+  [{l:'⌫',w:true,f:()=>delChar(lst.id)},{l:'Space',w:true,f:()=>insChar(lst.id,' ')},{l:'。',f:()=>insChar(lst.id,'。')},{l:'、',f:()=>insChar(lst.id,'、')},{l:'！',f:()=>insChar(lst.id,'！')},{l:'？',f:()=>insChar(lst.id,'？')}].forEach(s=>{
+    const k=document.createElement('button'); k.className='jp-key'+(s.w?' wide':''); k.textContent=s.l; k.onclick=s.f; kd.appendChild(k);
+  });
+  panel.appendChild(kd); form.appendChild(panel);
+  const dlb=document.createElement('button');
+  dlb.style.cssText='background:none;border:none;color:var(--text2);font-size:.72rem;cursor:pointer;padding:2px 4px;align-self:flex-end;';
+  dlb.textContent='🗑 Hapus list ini';
+  dlb.onclick=()=>{if(confirm(`Hapus "${lst.name}"?`)){lists=lists.filter(l=>l.id!==lst.id);saveAll();render();}};
+  form.appendChild(dlb); wrap.appendChild(form); sec.appendChild(wrap); return sec;
+}
+function reRenderList(id){const l=lists.find(x=>x.id===id);if(!l)return;const o=document.getElementById('list-'+id);if(o)o.replaceWith(buildListEl(l));}
+function toggleItem(lid,iid){const l=lists.find(x=>x.id===lid);const i=l.items.find(x=>x.id===iid);i.done=!i.done;saveAll();reRenderList(lid);}
+function addItem(lid){const inp=document.getElementById(`inp-${lid}`);const t=inp.value.trim();if(!t)return;lists.find(l=>l.id===lid).items.push({id:Date.now(),text:t,done:false});inp.value='';saveAll();reRenderList(lid);}
+function deleteItem(lid,iid){const l=lists.find(x=>x.id===lid);l.items=l.items.filter(i=>i.id!==iid);saveAll();reRenderList(lid);}
+function toggleCollapse(id){collapsed[id]=!collapsed[id];reRenderList(id);}
+function toggleJP(id){jpOpen[id]=!jpOpen[id];if(!jpMode[id])jpMode[id]='hiragana';reRenderList(id);}
+function insChar(lid,ch){if(!ch)return;const inp=document.getElementById(`inp-${lid}`);if(!inp)return;const s=inp.selectionStart,e=inp.selectionEnd;inp.value=inp.value.slice(0,s)+ch+inp.value.slice(e);inp.setSelectionRange(s+ch.length,s+ch.length);inp.focus();}
+function delChar(lid){const inp=document.getElementById(`inp-${lid}`);if(!inp)return;const s=inp.selectionStart,e=inp.selectionEnd;if(s===e&&s>0){inp.value=inp.value.slice(0,s-1)+inp.value.slice(s);inp.setSelectionRange(s-1,s-1);}else if(s!==e){inp.value=inp.value.slice(0,s)+inp.value.slice(e);inp.setSelectionRange(s,s);}inp.focus();}
+function openNewListModal(){document.getElementById('newListName').value='';selIcon='📋';buildIconPicker();document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function buildIconPicker(){const p=document.getElementById('iconPicker');p.innerHTML='';ICONS.forEach(ic=>{const b=document.createElement('button');b.className='icon-opt'+(ic===selIcon?' selected':'');b.textContent=ic;b.onclick=()=>{selIcon=ic;buildIconPicker();};p.appendChild(b);});}
+function createNewList(){const n=document.getElementById('newListName').value.trim();if(!n){document.getElementById('newListName').focus();return;}lists.push({id:Date.now(),name:n,icon:selIcon,items:[]});saveAll();render();closeModal();}
+document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+/* ════════════════════════════════════════════
+   VOCAB HELPERS
+════════════════════════════════════════════ */
+function getCategories(){return['Semua',...new Set(words.map(w=>w.cat))];}
+function filteredWords(){return vocabFilter==='Semua'?words:words.filter(w=>w.cat===vocabFilter);}
+
+function renderVocabStats(){
+  const t=words.length,k=words.filter(w=>w.status==='yes').length,a=words.filter(w=>w.status==='almost').length,n=words.filter(w=>w.status==='no').length,nw=words.filter(w=>!w.status).length;
+  document.getElementById('vocabStats').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${t}</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--check)">${k}</div><div class="stat-lbl">✓ Hafal</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#d97706">${a}</div><div class="stat-lbl">△ Hampir</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#dc2626">${n}</div><div class="stat-lbl">✗ Belum</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--accent2)">${nw}</div><div class="stat-lbl">★ Baru</div></div>
+  `;
+}
+
+function buildFilterBar(id){
+  const bar=document.getElementById(id); if(!bar)return;
+  bar.innerHTML='<span class="filter-lbl">Kategori:</span>';
+  getCategories().forEach(cat=>{
+    const b=document.createElement('button'); b.className='filter-btn'+(vocabFilter===cat?' active':'');
+    b.textContent=cat; b.onclick=()=>{vocabFilter=cat;buildFilterBar(id);if(id==='listFilterBar')renderWordTable();if(id==='fcFilterBar')initFlashcard();if(id==='quizFilterBar')startQuiz();};
+    bar.appendChild(b);
+  });
+}
+
+function loadDefaultVocab(){
+  if(words.length&&!confirm('Tambah kosakata N5 contoh ke daftarmu?')) return;
+  BUILTIN_VOCAB.forEach(w=>{if(!words.find(x=>x.jp===w.jp))words.push({...w,id:Date.now()+Math.random(),status:null});});
+  saveAll(); renderVocabStats(); renderWordTable();
+}
+function addWord(){
+  const jp=document.getElementById('aw-jp').value.trim();
+  const rd=document.getElementById('aw-read').value.trim();
+  const mn=document.getElementById('aw-meaning').value.trim();
+  if(!jp||!mn){alert('Kata JP dan Arti wajib diisi!');return;}
+  words.push({id:Date.now(),jp,read:rd,meaning:mn,example:document.getElementById('aw-example').value.trim(),exId:document.getElementById('aw-ex-id').value.trim(),img:document.getElementById('aw-img').value.trim()||mn,cat:document.getElementById('aw-cat').value,level:document.getElementById('aw-level').value,status:null});
+  ['aw-jp','aw-read','aw-meaning','aw-example','aw-ex-id','aw-img'].forEach(id=>document.getElementById(id).value='');
+  saveAll(); renderVocabStats(); renderWordTable();
+}
+function deleteWord(id){if(!confirm('Hapus kata ini?'))return;words=words.filter(w=>w.id!==id);saveAll();renderVocabStats();renderWordTable();}
+function clearWords(){if(!confirm('Hapus semua kata?'))return;words=[];saveAll();renderVocabStats();renderWordTable();}
+
+function renderWordTable(){
+  buildFilterBar('listFilterBar');
+  const fw=filteredWords(); const tb=document.getElementById('wordTableBody'); tb.innerHTML='';
+  if(!fw.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text2)">Belum ada kata. Tambahkan di atas atau muat kosakata N5!</td></tr>';return;}
+  fw.forEach(w=>{
+    const tr=document.createElement('tr');
+    const si=w.status==='yes'?'<span class="badge badge-know">✓</span>':w.status==='almost'?'<span class="badge badge-almost">△</span>':w.status==='no'?'<span class="badge badge-no">✗</span>':'<span class="badge badge-new">★</span>';
+    tr.innerHTML=`<td><div class="td-img-ph" id="timg-${w.id}">⏳</div></td>
+      <td class="td-jp">${w.jp}</td><td class="td-read">${w.read||'-'}</td>
+      <td>${w.meaning}</td><td><span class="badge badge-new">${w.cat}</span></td>
+      <td><span class="badge badge-level">${w.level||'N5'}</span></td>
+      <td>${si}</td><td><button class="tbl-del" onclick="deleteWord(${w.id})">✕</button></td>`;
+    tb.appendChild(tr);
+    // lazy load thumb
+    setTimeout(()=>{
+      const el=document.getElementById('timg-'+w.id);
+      if(el) setImgEl(el, w.img||w.meaning,'🖼');
+    }, 100);
+  });
+}
+
+/* ════════════════════════════════════════════
+   FLASHCARD WITH IMAGE
+════════════════════════════════════════════ */
+function initFlashcard(){
+  buildFilterBar('fcFilterBar');
+  buildDeckSelector();
+  let fw=filteredWords();
+  if(fcOnlyUnlearned) fw=fw.filter(w=>w.status!=='yes');
+  fcDeck=fw.length?[...fw]:[];
+  fcIdx=0; fcFlipped=false;
+  renderFC();
+}
+
+function buildDeckSelector(){
+  const ds=document.getElementById('fcDeckSelector'); ds.innerHTML='<span class="deck-lbl">Tampil:</span>';
+  [{l:'Semua',v:false},{l:'★ Belum Hafal',v:true}].forEach(opt=>{
+    const b=document.createElement('button'); b.className='deck-btn'+(fcOnlyUnlearned===opt.v?' active':'');
+    b.textContent=opt.l; b.onclick=()=>{fcOnlyUnlearned=opt.v;initFlashcard();}; ds.appendChild(b);
+  });
+}
+
+function renderFC(){
+  const card=document.getElementById('fcCard');
+  card.classList.remove('flipped'); fcFlipped=false;
+  document.getElementById('knowRow').style.display='none';
+
+  if(!fcDeck.length){
+    document.getElementById('fcFront').innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:var(--surface);border-radius:20px;gap:12px;padding:24px;"><div style="font-size:3rem">📭</div><div style="font-size:1rem;color:var(--text2);text-align:center">Tidak ada kata.<br>Tambahkan atau ubah filter.</div></div>`;
+    document.getElementById('fcBack').innerHTML='';
+    document.getElementById('fcCounter').textContent='0/0'; return;
+  }
+  if(fcIdx>=fcDeck.length) fcIdx=0;
+  const w=fcDeck[fcIdx];
+  const imgKey=w.img||w.meaning;
+
+  // FRONT
+  const front=document.getElementById('fcFront');
+  front.innerHTML=`
+    <div class="fc-img-wrap" id="fcFrontImg">
+      <div class="fc-img-loading">⏳ Memuat gambar…</div>
+    </div>
+    <div class="fc-img-overlay"></div>
+    <span class="fc-category-badge">${w.cat}</span>
+    <span class="fc-level-badge">${w.level||'N5'}</span>
+    <div class="fc-front-info">
+      <div class="fc-word-jp">${w.jp}</div>
+      <div class="fc-word-read">${w.read||''}</div>
+    </div>
+    <div class="fc-tap-hint">👆 Tap untuk lihat arti</div>
+  `;
+  // load image for front
+  const fImg=document.getElementById('fcFrontImg');
+  const fi=document.createElement('img');
+  fi.className='fc-img'; fi.src=getImgUrl(imgKey,700,500);
+  fi.alt=w.meaning; fi.style.opacity='0';
+  fi.onload=()=>{fi.style.opacity='1';fImg.querySelector('.fc-img-loading').remove();}
+  fi.onerror=()=>{fImg.innerHTML=`<div class="fc-img-placeholder">${w.cat==='Makanan'?'🍽':w.cat==='Alam'?'🌿':'🖼'}</div>`;}
+  fImg.insertBefore(fi,fImg.firstChild);
+
+  // BACK
+  const back=document.getElementById('fcBack');
+  back.innerHTML=`
+    <div class="fc-back-content">
+      <div class="fc-back-img-strip" id="fcBackImg">
+        <div class="fc-img-loading" style="background:var(--surface2)">⏳</div>
+        <div class="fc-back-img-overlay">
+          <div class="fc-back-jp">${w.jp}</div>
+          <div class="fc-back-read">${w.read||''}</div>
+        </div>
+      </div>
+      <div class="fc-back-body">
+        <div>
+          <div class="fc-meaning-tag">${w.cat} · ${w.level||'N5'}</div>
+          <div class="fc-meaning-big">${w.meaning}</div>
+        </div>
+        ${w.example?`<div class="fc-example-wrap"><div class="fc-example-jp">${w.example}</div>${w.exId?`<div class="fc-example-id">${w.exId}</div>`:''}</div>`:''}
+        <div class="fc-extra">
+          ${w.status==='yes'?'<span class="fc-extra-tag" style="color:var(--check)">✓ Sudah hafal</span>':w.status==='almost'?'<span class="fc-extra-tag" style="color:#d97706">△ Hampir hafal</span>':w.status==='no'?'<span class="fc-extra-tag" style="color:#dc2626">✗ Belum hafal</span>':'<span class="fc-extra-tag">★ Belum dipelajari</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+  const bi=document.getElementById('fcBackImg');
+  const bImg=document.createElement('img');
+  bImg.className='fc-back-img'; bImg.src=getImgUrl(imgKey,700,300);
+  bImg.style.opacity='0';
+  bImg.onload=()=>{bImg.style.opacity='1';bi.querySelector('.fc-img-loading')&&bi.querySelector('.fc-img-loading').remove();}
+  bImg.onerror=()=>{bi.querySelector('.fc-img-loading').remove();}
+  bi.insertBefore(bImg,bi.firstChild);
+
+  document.getElementById('fcCounter').textContent=`${fcIdx+1} / ${fcDeck.length}`;
+}
+
+function flipCard(){
+  const card=document.getElementById('fcCard');
+  fcFlipped=!fcFlipped; card.classList.toggle('flipped',fcFlipped);
+  document.getElementById('knowRow').style.display=fcFlipped?'flex':'none';
+}
+function fcNav(d){fcIdx=(fcIdx+d+fcDeck.length)%fcDeck.length;renderFC();}
+function markKnow(st){
+  if(!fcDeck.length)return;
+  const w=fcDeck[fcIdx]; const orig=words.find(x=>x.id===w.id);
+  if(orig){orig.status=st;saveAll();}
+  renderVocabStats();
+  fcIdx=(fcIdx+1)%fcDeck.length; renderFC();
+}
+function shuffleFC(){fcDeck=[...filteredWords()].sort(()=>Math.random()-.5);if(fcOnlyUnlearned)fcDeck=fcDeck.filter(w=>w.status!=='yes');fcIdx=0;renderFC();}
+function resetFC(){initFlashcard();}
+function fcFilterNew(){fcOnlyUnlearned=true;buildDeckSelector();initFlashcard();}
+
+/* ════════════════════════════════════════════
+   QUIZ
+════════════════════════════════════════════ */
+function setQuizType(t,btn){
+  quizType=t;
+  document.querySelectorAll('.qts-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  startQuiz();
+}
+function startQuiz(){
+  buildFilterBar('quizFilterBar');
+  const fw=filteredWords();
+  if(fw.length<4){document.getElementById('quizContent').innerHTML=`<div class="result-card"><div class="result-emoji">📚</div><div class="result-title">Kata Kurang</div><div class="result-sub">Butuh minimal 4 kata. Tambah atau ubah filter.</div></div>`;return;}
+  quizDeck=[...fw].sort(()=>Math.random()-.5);
+  quizIdx=0;quizScore=0;quizMiss=0;quizAnswered=false;
+  renderQuizQ();
+}
+function renderQuizQ(){
+  const fw=filteredWords();
+  if(quizIdx>=quizDeck.length){renderQuizResult();return;}
+  const q=quizDeck[quizIdx];
+  const others=fw.filter(w=>w.id!==q.id).sort(()=>Math.random()-.5).slice(0,3);
+  const choices=[...others,q].sort(()=>Math.random()-.5);
+  quizAnswered=false;
+  const imgKey=q.img||q.meaning;
+
+  let qHtml='';
+  if(quizType==='img2jp'){
+    qHtml=`<div class="quiz-q-img-placeholder" id="quizQImg">⏳</div>
+      <div class="quiz-q-body"><div class="quiz-q-label">Pilih kata Jepang untuk gambar ini (${quizIdx+1}/${quizDeck.length})</div></div>`;
+  } else if(quizType==='jp2id'){
+    qHtml=`<div class="quiz-q-img-placeholder" id="quizQImg">⏳</div>
+      <div class="quiz-q-body">
+        <div class="quiz-q-label">Apa arti kata ini? (${quizIdx+1}/${quizDeck.length})</div>
+        <div class="quiz-q-word">${q.jp}</div>
+        <div class="quiz-q-read">${q.read||''}</div>
+      </div>`;
+  } else {
+    qHtml=`<div class="quiz-q-img-placeholder" id="quizQImg">⏳</div>
+      <div class="quiz-q-body">
+        <div class="quiz-q-label">Pilih kata Jepang yang artinya: (${quizIdx+1}/${quizDeck.length})</div>
+        <div class="quiz-q-word" style="font-size:1.5rem">${q.meaning}</div>
+      </div>`;
+  }
+
+  const optHtml = choices.map(c=>{
+    const label = quizType==='jp2id'?c.meaning:quizType==='id2jp'?c.jp:`${c.jp}（${c.read||c.meaning}）`;
+    return `<button class="quiz-opt" data-id="${c.id}">${label}</button>`;
+  }).join('');
+
+  document.getElementById('quizContent').innerHTML=`
+    <div class="quiz-outer">
+      <div class="quiz-q-card">${qHtml}</div>
+      <div class="quiz-opts" id="quizOpts">${optHtml}</div>
+      <div class="quiz-fb" id="quizFb"></div>
+      <button class="quiz-next" id="quizNextBtn" onclick="quizNext()" style="display:none">${quizIdx+1<quizDeck.length?'Soal Berikutnya ▶':'🏆 Lihat Hasil'}</button>
+      <div class="quiz-scoreline">Benar: ${quizScore} | Salah: ${quizMiss}</div>
+    </div>
+  `;
+  // load quiz image
+  const qi=document.getElementById('quizQImg');
+  if(qi){
+    const im=document.createElement('img'); im.className='quiz-q-img';
+    im.src=getImgUrl(imgKey,600,200); im.alt=q.meaning; im.style.opacity='0';
+    im.onload=()=>{im.style.opacity='1';if(qi.parentNode){qi.replaceWith(im);}};
+    im.onerror=()=>{if(qi)qi.textContent=q.cat==='Makanan'?'🍽':q.cat==='Alam'?'🌿':'🖼';};
+    setTimeout(()=>{if(document.getElementById('quizQImg'))document.getElementById('quizQImg').replaceWith(im);},50);
+  }
+  // bind opts
+  document.querySelectorAll('.quiz-opt').forEach(b=>{
+    b.onclick=()=>answerQuiz(parseInt(b.dataset.id),q.id,b);
+  });
+}
+function answerQuiz(chosen,correct,btn){
+  if(quizAnswered)return; quizAnswered=true;
+  document.querySelectorAll('.quiz-opt').forEach(b=>b.classList.add('locked'));
+  const ok=chosen===correct;
+  if(ok){quizScore++;btn.classList.add('correct');document.getElementById('quizFb').innerHTML='<span style="color:var(--check)">✓ Benar! よくできました！</span>';}
+  else{quizMiss++;btn.classList.add('wrong');document.querySelectorAll(`.quiz-opt[data-id="${correct}"]`).forEach(b=>b.classList.add('correct'));document.getElementById('quizFb').innerHTML='<span style="color:#dc2626">✗ Salah. がんばって！</span>';}
+  const w=words.find(x=>x.id===correct);if(w){w.status=ok?'yes':'no';saveAll();renderVocabStats();}
+  document.getElementById('quizNextBtn').style.display='block';
+}
+function quizNext(){quizIdx++;if(quizIdx>=quizDeck.length)renderQuizResult();else renderQuizQ();}
+function renderQuizResult(){
+  const t=quizDeck.length,pct=Math.round(quizScore/t*100);
+  const em=pct>=80?'🏆':pct>=60?'😊':pct>=40?'😅':'📖';
+  const msg=pct>=80?'素晴らしい！ Luar biasa!':pct>=60?'上手！ Bagus!':pct>=40?'まあまあ Lumayan!':'もっと頑張って！ Terus belajar!';
+  document.getElementById('quizContent').innerHTML=`
+    <div class="result-card">
+      <div class="result-emoji">${em}</div>
+      <div class="result-title">${msg}</div>
+      <div class="result-score">${pct}%</div>
+      <div class="result-sub">${quizScore} dari ${t} soal benar</div>
+      <div class="result-breakdown">
+        <div class="rb-item"><div class="rb-num" style="color:var(--check)">${quizScore}</div><div class="rb-lbl">✓ Benar</div></div>
+        <div class="rb-item"><div class="rb-num" style="color:#dc2626">${quizMiss}</div><div class="rb-lbl">✗ Salah</div></div>
+      </div>
+      <button class="vbtn primary" style="margin:0 6px" onclick="startQuiz()">🔄 Ulangi Kuis</button>
+      <button class="vbtn" onclick="showVocabSub('flashcard',document.getElementById('vsn-flashcard'))">🃏 Ke Flashcard</button>
+    </div>
+  `;
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+buildThemeBar();
+render();
+renderVocabStats();
+// auto load built-in vocab if empty
+if(!words.length) loadDefaultVocab();
+</script>
+</body>
+</html>
