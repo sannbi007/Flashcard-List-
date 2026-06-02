@@ -295,6 +295,19 @@ tr:hover .tbl-del{opacity:1;}.tbl-del:hover{color:#dc2626;}
   .jp-key{width:28px;height:27px;font-size:.8rem;}.fc-word-jp{font-size:1.7rem;}.quiz-q-word{font-size:1.9rem;}
 }
 </style>
+   <link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="ListKu">
+<meta name="theme-color" content="#c17b3f">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js');
+    });
+  }
+</script>
 </head>
 <body data-theme="autumn">
 
